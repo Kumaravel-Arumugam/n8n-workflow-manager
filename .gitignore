@@ -8,10 +8,13 @@ node_modules/
 # Archive (large files)
 archive/
 
-# Logs
-*.log
+# Personal Workflows (keep structure, ignore content)
+projects/**/workflow.json
+projects/**/versions/
+projects/**/*.py
 
-# Temp files
+# Logs and temp
+*.log
 *.tmp
 current_*.json
 create_result.json

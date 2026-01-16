@@ -54,15 +54,21 @@ You can install this project in **two ways**:
 
 ### Option A: Installation with Agentic IDE (Recommended)
 
-Use AI to set everything up for you! Just open your Agentic IDE and say:
+Use AI to set everything up for you! Open your Agentic IDE (Antigravity, Cursor, etc.) and paste this prompt:
 
-> "Clone the n8n-workflow-manager repo from GitHub and help me set it up"
+```
+Clone the n8n-workflow-manager repository from https://github.com/Kumaravel-Arumugam/n8n-workflow-manager.git and help me set it up.
 
-The AI will guide you through:
-- Cloning the repository
-- Installing dependencies
-- Configuring your n8n credentials
-- Setting up the MCP server
+Guide me through:
+1. Cloning the repository
+2. Installing npm dependencies
+3. Creating my .env file with my n8n credentials
+4. Configuring the MCP server in my IDE settings
+
+Ask me for any information you need (my n8n URL, API key, etc.) and explain each step.
+```
+
+The AI will interactively guide you through the complete setup!
 
 ### Option B: Manual Installation
 
