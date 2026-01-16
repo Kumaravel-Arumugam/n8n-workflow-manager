@@ -243,18 +243,25 @@ rm -rf n8n-skills
 
 ---
 
-## 🙏 Credits
+## 🙏 Credits & Acknowledgments
 
-### n8n-skills & n8n-mcp
-Created by **Romuald Członkowski**:
-- 🔗 [n8n-skills](https://github.com/czlonkowski/n8n-skills)
-- 🔗 [n8n-mcp](https://github.com/czlonkowski/n8n-mcp)
+### Skills Reference
+The `skills/` folder contains knowledge modules from **Romuald Członkowski**:
+- 🔗 [n8n-skills](https://github.com/czlonkowski/n8n-skills) - MIT License
 - 🌐 [AI Advisors](https://www.aiadvisors.pl/en)
 
-> ⚠️ **Note:** Always check the original repositories for the latest updates.
+> ⚠️ **Note:** The skills may become outdated. Always check the [original repository](https://github.com/czlonkowski/n8n-skills) for the latest updates.
 
 ### This Project
-Maintained by **Kumaravel Arumugam** - Built to remove technical barriers for non-technical users.
+**Created by Kumaravel Arumugam** using AI-assisted development (Antigravity IDE).
+
+This includes:
+- Core scripts (`core/` folder)
+- Project structure and documentation
+- MCP configuration guides
+- Workflow templates
+
+Built to remove technical barriers for non-technical users who want to create n8n automations.
 
 ---
 
