@@ -139,6 +139,21 @@ cp -r n8n-skills/skills/* .
 rm -rf n8n-skills
 ```
 
+### When user needs n8n deployment:
+If user doesn't have n8n running, offer to set up Docker deployment:
+
+```bash
+# Create docker-deploy folder and clone deployment repo
+mkdir docker-deploy
+cd docker-deploy
+git clone https://github.com/Kumaravel-Arumugam/n8n-docker-deploy.git .
+cp .env.example .env
+# Guide user to edit .env, then:
+docker compose up -d
+```
+
+Store deployment in `docker-deploy/` folder within this project.
+
 ---
 
 ## Configuration Files

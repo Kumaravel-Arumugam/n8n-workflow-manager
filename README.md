@@ -46,6 +46,8 @@ Before installation, ensure you have:
 | **Git** | For cloning this repository |
 | **Agentic IDE** | Antigravity, Cursor, or any MCP-compatible AI IDE |
 
+> 🐳 **Need to deploy n8n?** See [n8n-docker-deploy](https://github.com/Kumaravel-Arumugam/n8n-docker-deploy) for Docker Compose setup with PostgreSQL, Ollama, and more.
+
 ---
 
 ## 🚀 Installation
@@ -254,7 +256,6 @@ rm -rf n8n-skills
 ### Skills Reference
 The `skills/` folder contains knowledge modules from **Romuald Członkowski**:
 - 🔗 [n8n-skills](https://github.com/czlonkowski/n8n-skills) - MIT License
-- 🌐 [AI Advisors](https://www.aiadvisors.pl/en)
 
 > ⚠️ **Note:** The skills may become outdated. Always check the [original repository](https://github.com/czlonkowski/n8n-skills) for the latest updates.
 
@@ -276,6 +277,15 @@ Built to remove technical barriers for non-technical users who want to create n8
 MIT License - See [LICENSE](LICENSE) file.
 
 Skills are licensed under MIT by Romuald Członkowski.
+
+---
+
+## 🔗 Related Projects
+
+| Repository | Description |
+|------------|-------------|
+| [n8n-docker-deploy](https://github.com/Kumaravel-Arumugam/n8n-docker-deploy) | Docker Compose deployment for n8n with PostgreSQL, Ollama, Qdrant |
+| [n8n-skills](https://github.com/czlonkowski/n8n-skills) | Skills reference by Romuald Członkowski (MIT License) |
 
 ---
 
