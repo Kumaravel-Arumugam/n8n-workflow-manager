@@ -35,7 +35,38 @@ An **MCP server** that gives AI assistants the ability to manage your n8n workfl
 
 ---
 
-## 🚀 Installation
+## 🤖 Installation via AI (Recommended)
+
+**Let your AI assistant handle the setup for you.**
+
+Open your Agentic IDE (Antigravity, Cursor, etc.) and paste this prompt:
+
+```text
+Help me set up the n8n-workflow-manager Project.
+
+Phase 1: Environment Check
+1. Ask me if I have a running n8n instance.
+2. If NO: Guide me to deploy using n8n-docker-deploy (https://github.com/Kumaravel-Arumugam/n8n-docker-deploy).
+3. If YES: Ask for my n8n API Key and Base URL.
+
+Phase 2: Project Setup
+1. Clone the repository: https://github.com/Kumaravel-Arumugam/n8n-workflow-manager.git
+2. Install dependencies (npm install).
+3. Create a .env file from .env.example.
+4. Populate .env with the API Key and Base URL I provided.
+
+Phase 3: MCP Configuration
+1. Analyze the README.md to understand the MCP structure.
+2. Guide me to configure the MCP server settings in this IDE.
+3. Use the absolute path for the script location.
+4. Remind me to restart the IDE after saving the config.
+
+Begin via Phase 1.
+```
+
+---
+
+## 🛠️ Manual Installation
 
 ### Step 1: Clone the Repository
 
