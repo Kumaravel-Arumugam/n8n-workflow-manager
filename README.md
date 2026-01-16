@@ -2,7 +2,6 @@
 
 > **Build n8n workflows through natural language prompts using AI + MCP.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![n8n](https://img.shields.io/badge/n8n-workflow%20automation-orange)](https://n8n.io/)
 
 Remove the technical barrier. Describe what automation you want → AI creates the workflow.
@@ -274,9 +273,9 @@ Built to remove technical barriers for non-technical users who want to create n8
 
 ## 📜 License
 
-MIT License - See [LICENSE](LICENSE) file.
+The `skills/` folder contains content from [n8n-skills](https://github.com/czlonkowski/n8n-skills) which is MIT Licensed by Romuald Członkowski.
 
-Skills are licensed under MIT by Romuald Członkowski.
+All other code in this repository is provided as-is for educational purposes.
 
 ---
 
