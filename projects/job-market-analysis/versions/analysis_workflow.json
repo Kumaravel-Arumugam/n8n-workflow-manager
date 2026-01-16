@@ -1,0 +1,261 @@
+{
+  "name": "Job Market Analysis Engine",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            { "name": "telegram_chat_id", "type": "number" },
+            { "name": "role_name", "type": "string" }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [-800, 300],
+      "id": "trigger-node",
+      "name": "Analysis Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM job_postings WHERE chat_id = {{ $json.telegram_chat_id }} AND role = '{{ $json.role_name }}' ORDER BY scraped_date DESC;",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [-560, 300],
+      "id": "fetch-jobs-node",
+      "name": "Fetch Job Postings",
+      "credentials": {
+        "postgres": {
+          "id": "huv0oVp6gAOYZofK",
+          "name": "job_market_intelligence"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 3 },
+          "conditions": [
+            {
+              "id": "check-data-exists",
+              "leftValue": "={{ $json }}",
+              "rightValue": "",
+              "operator": { "type": "array", "operation": "notEmpty" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [-320, 300],
+      "id": "data-check-node",
+      "name": "Has Data?"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "import pandas as pd\nimport numpy as np\nimport matplotlib\nmatplotlib.use(\"Agg\")\nimport matplotlib.pyplot as plt\nimport io\nimport base64\nimport re\nfrom datetime import datetime\nfrom collections import Counter\n\n# ============================================\n# DATA EXTRACTION\n# ============================================\njobs = _items\nif not jobs:\n    return [{'error': 'No job data received', 'has_data': False}]\n\n# Build DataFrame\nrecords = [item.get('json', item) if isinstance(item, dict) else item for item in jobs]\ndf = pd.DataFrame(records)\ntotal_jobs = len(df)\nrole_name = df['role'].iloc[0] if 'role' in df.columns and len(df) > 0 else 'Unknown Role'\n\n# ============================================\n# MINIMUM DATA CHECK\n# ============================================\nMIN_JOBS_FOR_CHARTS = 5\ncan_generate_charts = total_jobs >= MIN_JOBS_FOR_CHARTS\nlimitations = []\nif total_jobs < 10:\n    limitations.append(f\"Small sample size ({total_jobs} jobs). Findings are directional only.\")\n\n# ============================================\n# SECTION A: ROLE REALITY CHECK\n# ============================================\nsection_a = \"\"\ntry:\n    descriptions = df['description'].dropna().tolist()\n    all_text = ' '.join(descriptions).lower()\n    \n    # Key action verbs\n    action_verbs = ['analyze', 'develop', 'manage', 'lead', 'coordinate', 'design', 'implement', 'support', 'create', 'optimize', 'report', 'collaborate']\n    verb_counts = {v: all_text.count(v) for v in action_verbs}\n    top_verbs = sorted(verb_counts.items(), key=lambda x: x[1], reverse=True)[:5]\n    \n    # Role clarity assessment\n    titles = df['title'].dropna().unique().tolist()[:10]\n    title_variance = len(titles)\n    if title_variance > 5:\n        clarity = \"LOW: High variance in job titles suggests an undefined or inflated role.\"\n    elif title_variance > 2:\n        clarity = \"MEDIUM: Some variation in titles but core responsibilities align.\"\n    else:\n        clarity = \"HIGH: Consistent job titles indicate a well-defined market role.\"\n    \n    section_a = f\"\"\"<b>📌 SECTION A: ROLE REALITY CHECK</b>\n\n<b>Role:</b> {role_name}\n<b>Total Postings Analyzed:</b> {total_jobs}\n\n<b>Dominant Action Patterns:</b>\n\"\"\" + '\\n'.join([f\"• {v[0].capitalize()}: {v[1]} mentions\" for v in top_verbs]) + f\"\"\"\n\n<b>Title Clarity:</b> {clarity}\n<b>Sample Titles:</b> {', '.join(titles[:5])}\n\"\"\"\nexcept Exception as e:\n    section_a = f\"<b>📌 SECTION A: ROLE REALITY CHECK</b>\\n\\n⚠️ Could not complete analysis: {str(e)}\"\n    limitations.append(\"Section A analysis failed.\")\n\n# ============================================\n# SECTION B: SKILL DEMAND SIGNAL\n# ============================================\nsection_b = \"\"\nchart1_base64 = \"\"\nchart1_caption = \"\"\ntry:\n    all_skills = []\n    for skills_str in df['skills'].dropna():\n        # Split by common delimiters\n        skills = re.split(r'[,|;/]', str(skills_str))\n        all_skills.extend([s.strip().lower() for s in skills if s.strip()])\n    \n    skill_counts = Counter(all_skills)\n    top_skills = skill_counts.most_common(15)\n    \n    core_skills = [s for s, c in top_skills[:5]]\n    secondary_skills = [s for s, c in top_skills[5:10]]\n    \n    section_b = f\"\"\"<b>📊 SECTION B: SKILL DEMAND SIGNAL</b>\n\n<b>Core Skills (High Demand):</b>\n\"\"\" + '\\n'.join([f\"• {s[0].title()}: {s[1]} postings\" for s in top_skills[:5]]) + f\"\"\"\n\n<b>Secondary Skills:</b>\n\"\"\" + '\\n'.join([f\"• {s[0].title()}: {s[1]} postings\" for s in top_skills[5:10]]) + \"\"\"\n\n<i>📈 Chart: Skill frequency visualization attached below.</i>\n\"\"\"\n    \n    # Generate Chart\n    if can_generate_charts and len(top_skills) >= 3:\n        plt.style.use(\"dark_background\")\n        bg_color, text_color = \"#0a0e1a\", \"#f0f0f0\"\n        \n        fig, ax = plt.subplots(figsize=(12, 7), dpi=150)\n        fig.patch.set_facecolor(bg_color)\n        ax.set_facecolor(bg_color)\n        \n        skills_labels = [s[0].title() for s in top_skills[:12]]\n        skills_values = [s[1] for s in top_skills[:12]]\n        \n        colors = plt.cm.viridis(np.linspace(0.3, 0.9, len(skills_labels)))\n        bars = ax.barh(skills_labels[::-1], skills_values[::-1], color=colors[::-1], edgecolor='white', linewidth=0.5)\n        \n        ax.set_xlabel('Frequency', color=text_color, fontsize=12, fontweight='600')\n        ax.set_title(f'Skill Demand - {role_name}', color=text_color, fontsize=16, fontweight='bold', pad=20)\n        ax.tick_params(colors=text_color, labelsize=10)\n        ax.grid(axis='x', color='#1a1f2e', linestyle='-', linewidth=0.6, alpha=0.6)\n        \n        for bar, val in zip(bars, skills_values[::-1]):\n            ax.text(bar.get_width() + 0.5, bar.get_y() + bar.get_height()/2, str(val), va='center', color=text_color, fontsize=10)\n        \n        plt.tight_layout()\n        buffer = io.BytesIO()\n        plt.savefig(buffer, format=\"png\", bbox_inches=\"tight\", facecolor=bg_color, dpi=150)\n        buffer.seek(0)\n        chart1_base64 = base64.b64encode(buffer.read()).decode(\"utf-8\")\n        buffer.close()\n        plt.close(fig)\n        chart1_caption = f\"<b>📊 Skill Demand - {role_name}</b>\\n\\n<i>Top skills extracted from {total_jobs} job postings.</i>\\n\\n<b>Core:</b> {', '.join(core_skills[:3]).title()}\"\n    else:\n        limitations.append(\"Skill chart could not be generated (insufficient data).\")\nexcept Exception as e:\n    section_b = f\"<b>📊 SECTION B: SKILL DEMAND SIGNAL</b>\\n\\n⚠️ Could not complete analysis: {str(e)}\"\n    limitations.append(\"Section B skill analysis failed.\")\n\n# ============================================\n# SECTION C: EXPERIENCE PATTERN\n# ============================================\nsection_c = \"\"\nchart2_base64 = \"\"\nchart2_caption = \"\"\ntry:\n    exp_values = []\n    for exp_str in df['experience'].dropna():\n        # Extract numbers (e.g., \"3-5 years\" -> take avg)\n        nums = re.findall(r'\\d+', str(exp_str))\n        if nums:\n            exp_values.append(np.mean([int(n) for n in nums]))\n    \n    if exp_values:\n        exp_series = pd.Series(exp_values)\n        bins = [0, 2, 5, 8, 12, 20]\n        labels = ['0-2 yrs', '3-5 yrs', '6-8 yrs', '9-12 yrs', '12+ yrs']\n        exp_binned = pd.cut(exp_series, bins=bins, labels=labels, right=True)\n        exp_dist = exp_binned.value_counts().sort_index()\n        \n        dominant_level = exp_dist.idxmax()\n        \n        section_c = f\"\"\"<b>📈 SECTION C: EXPERIENCE PATTERN</b>\n\n<b>Experience Distribution:</b>\n\"\"\" + '\\n'.join([f\"• {lvl}: {cnt} postings\" for lvl, cnt in exp_dist.items()]) + f\"\"\"\n\n<b>Dominant Hiring Level:</b> {dominant_level}\n<i>📈 Chart: Experience distribution attached below.</i>\n\"\"\"\n        \n        # Generate Chart\n        if can_generate_charts:\n            fig, ax = plt.subplots(figsize=(10, 6), dpi=150)\n            fig.patch.set_facecolor(bg_color)\n            ax.set_facecolor(bg_color)\n            \n            colors = ['#00d4ff', '#00ff88', '#ffc107', '#ff6b6b', '#b388ff']\n            bars = ax.bar(exp_dist.index.astype(str), exp_dist.values, color=colors[:len(exp_dist)], edgecolor='white', linewidth=0.5)\n            \n            ax.set_xlabel('Experience Level', color=text_color, fontsize=12, fontweight='600')\n            ax.set_ylabel('Number of Postings', color=text_color, fontsize=12, fontweight='600')\n            ax.set_title(f'Experience Distribution - {role_name}', color=text_color, fontsize=16, fontweight='bold', pad=20)\n            ax.tick_params(colors=text_color, labelsize=10)\n            ax.grid(axis='y', color='#1a1f2e', linestyle='-', linewidth=0.6, alpha=0.6)\n            \n            for bar, val in zip(bars, exp_dist.values):\n                ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5, str(val), ha='center', color=text_color, fontsize=11, fontweight='bold')\n            \n            plt.tight_layout()\n            buffer = io.BytesIO()\n            plt.savefig(buffer, format=\"png\", bbox_inches=\"tight\", facecolor=bg_color, dpi=150)\n            buffer.seek(0)\n            chart2_base64 = base64.b64encode(buffer.read()).decode(\"utf-8\")\n            buffer.close()\n            plt.close(fig)\n            chart2_caption = f\"<b>📈 Experience Distribution - {role_name}</b>\\n\\n<i>Most postings target: {dominant_level}</i>\"\n        else:\n            limitations.append(\"Experience chart could not be generated.\")\n    else:\n        section_c = \"<b>📈 SECTION C: EXPERIENCE PATTERN</b>\\n\\n⚠️ No experience data available.\"\n        limitations.append(\"Experience field missing or unparseable.\")\nexcept Exception as e:\n    section_c = f\"<b>📈 SECTION C: EXPERIENCE PATTERN</b>\\n\\n⚠️ Could not complete analysis: {str(e)}\"\n    limitations.append(\"Section C experience analysis failed.\")\n\n# ============================================\n# SECTION D: MARKET CONSISTENCY\n# ============================================\nsection_d = \"\"\ntry:\n    # Measure variance in requirements\n    skill_lists = [set(re.split(r'[,|;/]', str(s).lower())) for s in df['skills'].dropna()]\n    if len(skill_lists) > 1:\n        # Jaccard similarity between consecutive postings\n        similarities = []\n        for i in range(len(skill_lists)-1):\n            intersection = len(skill_lists[i] & skill_lists[i+1])\n            union = len(skill_lists[i] | skill_lists[i+1])\n            if union > 0:\n                similarities.append(intersection / union)\n        avg_similarity = np.mean(similarities) if similarities else 0\n        \n        if avg_similarity > 0.5:\n            consistency = \"HIGH: Market has clear, standardized expectations.\"\n        elif avg_similarity > 0.25:\n            consistency = \"MEDIUM: Moderate variance in requirements across postings.\"\n        else:\n            consistency = \"LOW: High variance suggests an evolving or fragmented role definition.\"\n        \n        section_d = f\"\"\"<b>⚖️ SECTION D: MARKET CONSISTENCY</b>\n\n<b>Requirement Similarity Score:</b> {avg_similarity:.2%}\n<b>Assessment:</b> {consistency}\n\n<i>This measures how consistently employers define the role.</i>\n\"\"\"\n    else:\n        section_d = \"<b>⚖️ SECTION D: MARKET CONSISTENCY</b>\\n\\n⚠️ Insufficient data for consistency analysis.\"\n        limitations.append(\"Not enough data for market consistency analysis.\")\nexcept Exception as e:\n    section_d = f\"<b>⚖️ SECTION D: MARKET CONSISTENCY</b>\\n\\n⚠️ Could not complete analysis: {str(e)}\"\n    limitations.append(\"Section D consistency analysis failed.\")\n\n# ============================================\n# SECTION E: CAREER DECISION BRIEF\n# ============================================\nsection_e = \"\"\ntry:\n    section_e = f\"\"\"<b>🎯 SECTION E: CAREER DECISION BRIEF</b>\n\n<b>Skills to Prioritize (High ROI):</b>\n\"\"\" + '\\n'.join([f\"✅ {s.title()}\" for s in core_skills[:3]]) + \"\"\"\n\n<b>Skills to Deprioritize (Low Signal):</b>\n\"\"\" + '\\n'.join([f\"❌ {s[0].title()}\" for s in top_skills[-3:]]) + f\"\"\"\n\n<b>Recommended Experience Target:</b>\n• Focus on roles in the {dominant_level if 'dominant_level' in dir() else '3-5 yrs'} band.\n\n<b>Explicit Limitations:</b>\n\"\"\" + ('\\n'.join([f\"⚠️ {l}\" for l in limitations]) if limitations else \"✅ No significant limitations.\")\nexcept Exception as e:\n    section_e = f\"<b>🎯 SECTION E: CAREER DECISION BRIEF</b>\\n\\n⚠️ Could not complete synthesis: {str(e)}\"\n\n# ============================================\n# ASSEMBLE FINAL REPORT\n# ============================================\nreport_text = f\"\"\"━━━━━━━━━━━━━━━━━━━━━━━\n<b>📑 JOB MARKET INTELLIGENCE REPORT</b>\n━━━━━━━━━━━━━━━━━━━━━━━\n\n<b>Role:</b> {role_name}\n<b>Data Points:</b> {total_jobs} job postings\n<b>Generated:</b> {datetime.now().strftime('%d-%m-%Y %H:%M')}\n\n{section_a}\n\n{section_b}\n\n{section_c}\n\n{section_d}\n\n{section_e}\n\n━━━━━━━━━━━━━━━━━━━━━━━\n<i>📊 Charts attached below this report.</i>\n\"\"\"\n\nreturn [{\n    'text_html': report_text,\n    'chart1_base64': chart1_base64,\n    'chart1_caption': chart1_caption,\n    'chart2_base64': chart2_base64,\n    'chart2_caption': chart2_caption,\n    'has_data': True\n}]\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-80, 200],
+      "id": "analysis-engine-node",
+      "name": "Analysis Engine (Python)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "no-data-text", "name": "text_html", "value": "=<b>📑 JOB MARKET INTELLIGENCE REPORT</b>\n\n<b>Role:</b> {{ $('Analysis Trigger').item.json.role_name }}\n\n⚠️ <b>No market data available.</b>\n\nNo job postings were found for this role in your database.\n\n<i>Please run a scrape first using the main Job Market Pipeline.</i>", "type": "string" },
+            { "id": "no-charts", "name": "has_charts", "value": false, "type": "boolean" }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-80, 400],
+      "id": "no-data-node",
+      "name": "No Data Report"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Analysis Trigger').item.json.telegram_chat_id }}",
+        "text": "={{ $json.text_html }}",
+        "additionalFields": { "appendAttribution": false, "parse_mode": "HTML" }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [240, 300],
+      "id": "send-report-node",
+      "name": "Telegram: Send Report",
+      "credentials": {
+        "telegramApi": {
+          "id": "YgUKoloc6u1XLWhU",
+          "name": "job analyst"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 3 },
+          "conditions": [
+            {
+              "id": "has-chart1",
+              "leftValue": "={{ $json.chart1_base64 }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "isNotEmpty" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [480, 200],
+      "id": "has-chart1-node",
+      "name": "Has Chart 1?"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "chart1_base64",
+        "binaryPropertyName": "chart1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [720, 140],
+      "id": "chart1-to-file-node",
+      "name": "Chart 1: Skills to File"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Analysis Trigger').item.json.telegram_chat_id }}",
+        "binaryData": true,
+        "binaryPropertyName": "chart1",
+        "additionalFields": { "caption": "={{ $('Analysis Engine (Python)').item.json.chart1_caption }}", "parse_mode": "HTML" }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [960, 140],
+      "id": "send-chart1-node",
+      "name": "Telegram: Chart 1",
+      "credentials": {
+        "telegramApi": {
+          "id": "YgUKoloc6u1XLWhU",
+          "name": "job analyst"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 3 },
+          "conditions": [
+            {
+              "id": "has-chart2",
+              "leftValue": "={{ $json.chart2_base64 }}",
+              "rightValue": "",
+              "operator": { "type": "string", "operation": "isNotEmpty" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [480, 360],
+      "id": "has-chart2-node",
+      "name": "Has Chart 2?"
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "chart2_base64",
+        "binaryPropertyName": "chart2",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [720, 300],
+      "id": "chart2-to-file-node",
+      "name": "Chart 2: Experience to File"
+    },
+    {
+      "parameters": {
+        "operation": "sendPhoto",
+        "chatId": "={{ $('Analysis Trigger').item.json.telegram_chat_id }}",
+        "binaryData": true,
+        "binaryPropertyName": "chart2",
+        "additionalFields": { "caption": "={{ $('Analysis Engine (Python)').item.json.chart2_caption }}", "parse_mode": "HTML" }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [960, 300],
+      "id": "send-chart2-node",
+      "name": "Telegram: Chart 2",
+      "credentials": {
+        "telegramApi": {
+          "id": "YgUKoloc6u1XLWhU",
+          "name": "job analyst"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Analysis Trigger": {
+      "main": [[{ "node": "Fetch Job Postings", "type": "main", "index": 0 }]]
+    },
+    "Fetch Job Postings": {
+      "main": [[{ "node": "Has Data?", "type": "main", "index": 0 }]]
+    },
+    "Has Data?": {
+      "main": [
+        [{ "node": "Analysis Engine (Python)", "type": "main", "index": 0 }],
+        [{ "node": "No Data Report", "type": "main", "index": 0 }]
+      ]
+    },
+    "Analysis Engine (Python)": {
+      "main": [[{ "node": "Telegram: Send Report", "type": "main", "index": 0 }]]
+    },
+    "No Data Report": {
+      "main": [[{ "node": "Telegram: Send Report", "type": "main", "index": 0 }]]
+    },
+    "Telegram: Send Report": {
+      "main": [[
+        { "node": "Has Chart 1?", "type": "main", "index": 0 },
+        { "node": "Has Chart 2?", "type": "main", "index": 0 }
+      ]]
+    },
+    "Has Chart 1?": {
+      "main": [
+        [{ "node": "Chart 1: Skills to File", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Chart 1: Skills to File": {
+      "main": [[{ "node": "Telegram: Chart 1", "type": "main", "index": 0 }]]
+    },
+    "Has Chart 2?": {
+      "main": [
+        [{ "node": "Chart 2: Experience to File", "type": "main", "index": 0 }],
+        []
+      ]
+    },
+    "Chart 2: Experience to File": {
+      "main": [[{ "node": "Telegram: Chart 2", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null
+}

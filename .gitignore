@@ -1,0 +1,17 @@
+# Environment
+.env
+.env.local
+
+# Dependencies
+node_modules/
+
+# Archive (large files)
+archive/
+
+# Logs
+*.log
+
+# Temp files
+*.tmp
+current_*.json
+create_result.json
