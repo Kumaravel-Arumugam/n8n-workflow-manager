@@ -2,6 +2,9 @@
 
 > **Build n8n workflows through natural language prompts using AI + MCP.**
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![n8n](https://img.shields.io/badge/n8n-workflow%20automation-orange)](https://n8n.io/)
+
 Remove the technical barrier. Describe what automation you want → AI creates the workflow.
 
 ---
@@ -10,7 +13,7 @@ Remove the technical barrier. Describe what automation you want → AI creates t
 
 This project enables **non-technical users** to create n8n automations by simply describing what they want. Instead of manually building workflows, you:
 
-1. Open Antigravity IDE (or any MCP-compatible AI)
+1. Open an Agentic IDE (Antigravity, Cursor, VS Code + MCP)
 2. Describe your automation in plain English
 3. AI creates the workflow using n8n-mcp tools
 
@@ -26,38 +29,57 @@ The AI handles the rest.
 | Component | Purpose |
 |-----------|---------|
 | **Core Scripts** | Update, create, and manage workflows via API |
-| **Skills** | Expert knowledge for building n8n workflows |
+| **Skills** | 7 expert knowledge modules for building n8n workflows |
 | **Project Templates** | Example workflow structures |
+| **Documentation** | Best practices and guides |
 
 ---
 
 ## ⚡ Prerequisites
 
-Before setup, you need:
+Before installation, ensure you have:
 
-1. **n8n Instance** - Self-hosted or cloud (with API access)
-2. **Antigravity IDE** - Download from [Google DeepMind](https://deepmind.google/)
-3. **Node.js 18+** - For running scripts
-4. **Git** - For cloning this repo
+| Requirement | Description |
+|-------------|-------------|
+| **n8n Instance** | Self-hosted or cloud (with API & MCP access enabled) |
+| **Node.js 18+** | For running utility scripts |
+| **Git** | For cloning this repository |
+| **Agentic IDE** | Antigravity, Cursor, or any MCP-compatible AI IDE |
 
 ---
 
 ## 🚀 Installation
 
-### Step 1: Clone the Repository
+You can install this project in **two ways**:
+
+### Option A: Installation with Agentic IDE (Recommended)
+
+Use AI to set everything up for you! Just open your Agentic IDE and say:
+
+> "Clone the n8n-workflow-manager repo from GitHub and help me set it up"
+
+The AI will guide you through:
+- Cloning the repository
+- Installing dependencies
+- Configuring your n8n credentials
+- Setting up the MCP server
+
+### Option B: Manual Installation
+
+#### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/n8n-workflow-manager.git
-cd n8n-workflow-manager/n8n-manager
+git clone https://github.com/Kumaravel-Arumugam/n8n-workflow-manager.git
+cd n8n-workflow-manager
 ```
 
-### Step 2: Install Dependencies
+#### Step 2: Install Dependencies
 
 ```bash
 npm install
 ```
 
-### Step 3: Configure Environment
+#### Step 3: Configure Environment
 
 ```bash
 # Copy the example file
@@ -76,30 +98,22 @@ N8N_BASE_URL=https://your-n8n-instance.com
 
 **How to get your n8n API key:**
 1. Open your n8n instance
-2. Go to Settings → API
+2. Go to **Settings → API**
 3. Create a new API key
 4. Copy the key
 
 ---
 
-## 🔌 Antigravity MCP Setup
+## 🔌 Agentic IDE MCP Setup
 
-This is the **key step** that connects AI to your n8n instance.
+This connects your AI assistant to your n8n instance.
 
-### Step 1: Open Antigravity IDE
+### For Antigravity IDE
 
-### Step 2: Access MCP Settings
-1. Click the **Chat** section
-2. Click **Additional Options** (⚙️ icon)
-3. Click **Manage MCP Servers**
-
-### Step 3: View Raw Config
-1. Click **View Raw Config** or **Edit Config**
-2. You'll see a JSON file
-
-### Step 4: Add n8n-mcp Server
-
-Add this to your `mcp_config.json`:
+1. Open Antigravity IDE
+2. Go to **Chat → Additional Options (⚙️) → Manage MCP Servers**
+3. Click **View Raw Config** or **Edit Config**
+4. Add this configuration:
 
 ```json
 {
@@ -119,29 +133,29 @@ Add this to your `mcp_config.json`:
 }
 ```
 
-**Replace:**
-- `YOUR_N8N_URL` → Your n8n instance URL (e.g., `https://my-n8n.ngrok.dev`)
-- `YOUR_MCP_ACCESS_TOKEN` → Your n8n MCP access token
+5. Replace:
+   - `YOUR_N8N_URL` → Your n8n instance URL
+   - `YOUR_MCP_ACCESS_TOKEN` → Your n8n MCP token
+
+6. Save and restart the IDE
 
 **How to get your MCP access token:**
 1. Open your n8n instance
-2. Go to Settings → MCP Server
+2. Go to **Settings → MCP Server**
 3. Enable MCP Server
 4. Copy the access token
 
-### Step 5: Save and Restart
-1. Save the config file
-2. Restart Antigravity IDE
-3. The n8n-mcp server should now appear in your MCP servers list
+### For Other IDEs (Cursor, VS Code, etc.)
+
+Check your IDE's MCP documentation and use the same configuration structure above.
 
 ---
 
 ## 📂 Project Structure
 
 ```
-n8n-manager/
-├── .env                    # Your credentials (NEVER commit!)
-├── .env.example            # Template for credentials
+n8n-workflow-manager/
+├── .env.example            # Environment template
 ├── README.md               # This file
 ├── package.json            # Dependencies
 │
@@ -153,26 +167,24 @@ n8n-manager/
 │
 ├── skills/                 # n8n development knowledge
 │   ├── n8n-expression-syntax/
-│   ├── n8n-mcp-tools-expert/   # MOST IMPORTANT
+│   ├── n8n-mcp-tools-expert/   # ⭐ MOST IMPORTANT
 │   ├── n8n-workflow-patterns/
 │   ├── n8n-validation-expert/
 │   ├── n8n-node-configuration/
 │   ├── n8n-code-javascript/
 │   └── n8n-code-python/
 │
-├── projects/               # Your workflow projects
-│   └── job-market-analysis/    # Example project
-│
-└── archive/                # Large files (gitignored)
+└── projects/               # Your workflow projects
+    └── job-market-analysis/    # Example project
 ```
 
 ---
 
 ## 💡 Usage
 
-### Using with Antigravity AI
+### With Agentic IDE
 
-Once MCP is configured, just describe what you want:
+Once MCP is configured, describe what you want:
 
 > "Create a workflow that monitors a Google Sheet and sends Slack notifications when new rows are added"
 
@@ -183,11 +195,13 @@ The AI will:
 4. Validate the workflow
 5. Deploy to your n8n instance
 
-### Using the Scripts
+### With Scripts
 
 ```bash
-# Update a workflow
+# Navigate to core folder
 cd core
+
+# Update a workflow
 node update_workflow.js
 
 # Find workflow IDs
@@ -196,19 +210,35 @@ node find_id.js
 
 ---
 
+## 📖 Skills Reference
+
+| Skill | Use When |
+|-------|----------|
+| `n8n-expression-syntax` | Writing `{{}}` expressions |
+| `n8n-mcp-tools-expert` | Using MCP tools (HIGHEST PRIORITY) |
+| `n8n-workflow-patterns` | Designing workflow architecture |
+| `n8n-validation-expert` | Debugging validation errors |
+| `n8n-node-configuration` | Setting up node parameters |
+| `n8n-code-javascript` | Writing JS in Code nodes |
+| `n8n-code-python` | Writing Python in Code nodes |
+
+---
+
 ## ⚠️ Important Notes
 
-### What NOT to Commit
-- `.env` - Contains your API keys!
-- `node_modules/` - Reinstall with npm
-- `archive/` - Large personal files
+### Security
+- **Never commit `.env`** - It contains your API keys!
+- The `.gitignore` already protects sensitive files
 
 ### Updating Skills
-The skills folder may become outdated. Update from the original:
+The skills may become outdated. Update from the original:
 
 ```bash
 cd skills
+rm -rf n8n-*  # Remove old skills
 git clone https://github.com/czlonkowski/n8n-skills.git --depth 1
+cp -r n8n-skills/skills/* .
+rm -rf n8n-skills
 ```
 
 ---
@@ -216,22 +246,21 @@ git clone https://github.com/czlonkowski/n8n-skills.git --depth 1
 ## 🙏 Credits
 
 ### n8n-skills & n8n-mcp
-The skills and MCP server are created by **Romuald Członkowski**.
+Created by **Romuald Członkowski**:
+- 🔗 [n8n-skills](https://github.com/czlonkowski/n8n-skills)
+- 🔗 [n8n-mcp](https://github.com/czlonkowski/n8n-mcp)
+- 🌐 [AI Advisors](https://www.aiadvisors.pl/en)
 
-- **n8n-skills**: https://github.com/czlonkowski/n8n-skills
-- **n8n-mcp**: https://github.com/czlonkowski/n8n-mcp
-- **Website**: https://www.aiadvisors.pl/en
-
-> ⚠️ **Note:** Always check the original repositories for the latest updates. Skills in this repo may be outdated.
+> ⚠️ **Note:** Always check the original repositories for the latest updates.
 
 ### This Project
-Built on top of n8n-mcp to provide a complete setup for non-technical users to create automations using AI.
+Maintained by **Kumaravel Arumugam** - Built to remove technical barriers for non-technical users.
 
 ---
 
 ## 📜 License
 
-MIT License - See LICENSE file.
+MIT License - See [LICENSE](LICENSE) file.
 
 Skills are licensed under MIT by Romuald Członkowski.
 
@@ -240,10 +269,18 @@ Skills are licensed under MIT by Romuald Członkowski.
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ---
 
-*Powered by n8n + Antigravity AI + MCP*
+## 🐛 Issues & Support
+
+Found a bug or have a question?
+- Open an issue on [GitHub Issues](https://github.com/Kumaravel-Arumugam/n8n-workflow-manager/issues)
+
+---
+
+*Powered by n8n + Agentic AI + MCP*
