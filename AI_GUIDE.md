@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AI Guide for Agentic IDEs
 
-This file provides guidance to AI assistants (Claude, GPT, Gemini, etc.) when working with this repository.
+This file provides guidance to AI assistants (Antigravity, Cursor, Claude, GPT, etc.) when working with this repository.
 
 ---
 
