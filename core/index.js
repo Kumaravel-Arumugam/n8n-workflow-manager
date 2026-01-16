@@ -6,8 +6,15 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import axios from "axios";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
 
-dotenv.config();
+// Get directory path for ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Load .env from parent directory (relative path, works for any user)
+dotenv.config({ path: join(__dirname, "..", ".env") });
 
 // Configuration
 const N8N_API_KEY = process.env.N8N_API_KEY;

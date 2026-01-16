@@ -5,16 +5,9 @@
 # Dependencies
 node_modules/
 
-# Archive (large files)
-archive/
-
-# Personal Workflows (keep structure, ignore content)
-projects/**/workflow.json
-projects/**/versions/
-projects/**/*.py
-
-# Logs and temp
+# Logs
 *.log
-*.tmp
-current_*.json
-create_result.json
+
+# Workspace (Temporary files)
+workspace/*
+!workspace/README.md
